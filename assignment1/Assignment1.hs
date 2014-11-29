@@ -14,12 +14,12 @@ import Data.Char
 
 
 findPos :: String -> [String] -> Int
-findPos _ _ = -1   -- DUMMY: replace by implementation
+findPos s xs = (\xs -> if null xs then -1 else head xs) [i| (i,x)<-zip [0..] xs, map toLower s == map toLower x]
 
 
 
 findCharStrings :: Char -> [String] -> [String]
-findCharStrings _ _ = []  -- DUMMY: replace by implementation
+findCharStrings c xs = filter (\xs -> any (\s -> s == toLower c) (map toLower xs) ) xs
 
 
 
@@ -28,11 +28,15 @@ findCharStrings _ _ = []  -- DUMMY: replace by implementation
 --
 
 sortStrings :: [String] -> [String]
-sortStrings _ = []   -- DUMMY: replace by implementation
+sortStrings []     = []
+sortStrings (x:xs) = insertSorted x (sortStrings xs)
+    where insertSorted x []     = [x]
+          insertSorted x (y:ys) = if (map toLower x) < (map toLower y) then (x:y:ys) else y:(insertSorted x ys)
 
 
--- Explain here briefly, how your algorithm works!
--- 
+-- Simple implementation of insertion sort O(n^2)
+-- take first element (x) of unsorted (xs) and insert it at the right position in sorted
+-- repeat until unsorted is empty
 
 
 
