@@ -46,7 +46,10 @@ sortStrings (x:xs) = insertSorted x (sortStrings xs)
 
 
 nameScore :: String -> [String] -> Integer
-nameScore _ _ = 0   -- DUMMY: replace by implementation
+nameScore _ [] = (-1)
+nameScore a xs = let pos = fromIntegral(findPos a xs) in 
+                    if pos > -1 then pos * fromIntegral(sum $ map (\c -> let diff=ord c - ord 'a' in if diff<0 || diff>25 then 0 else 1+diff  ) $ map toLower a)
+                    else -1
 
 
 
