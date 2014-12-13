@@ -35,9 +35,8 @@ sortStrings (x:xs) = insertSorted x (sortStrings xs)
 
 
 -- Simple implementation of insertion sort O(n^2)
--- take first element (x) of unsorted (xs) and insert it at the right position in sorted
--- repeat until unsorted is empty
-
+-- take first element (x) of UNSORTED (xs) and insert it at the right position in already SORTED (sortStrings xs)
+-- insertSorted recursively shoves the biggest element to the right or rather at the end of the list
 
 
 --
@@ -60,25 +59,32 @@ nameScore a xs = let pos = fromIntegral(findPos a xs) in
 
 
 readConsole :: IO ()
-readConsole = return ()   -- DUMMY: replace by implementation
+readConsole = do
+                putStrLn "Give a Number:"
+                input <- getLine
+                if (length $ filter isDigit input) == length input
+                    then
+                        putStrLn ("The digit-sum of "++ input ++ " is " ++ show (sumUp input))
+                    else 
+                        putStrLn ("Next time, enter a valid number!")
+                where sumUp [] = 0
+                      sumUp (x:xs) = ( (ord x) - 48) + sumUp xs  
 
-
-
-
---
 -- Task 2.2
 --
 
 
 readFileTokens :: FilePath -> IO [String]
-readFileTokens _ = return []   -- DUMMY: replace by implementation
+readFileTokens path = do 
+                        content <- readFile path
+                        return (words $ filter (\s -> isAlpha s || isSpace s ) content)
 
 
 
 writeFileTokens :: [String] -> FilePath -> IO ()
-writeFileTokens _ _ = return ()   -- DUMMY: replace by implementation
-
-
+writeFileTokens xs path = writeFile path (conc xs)
+    where conc (x:xs) = if not $ null xs then x ++ ", " ++ conc xs else x
+          conc _  = []
 
 main :: IO ()
 main = return ()   -- DUMMY: replace by implementation
