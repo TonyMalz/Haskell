@@ -91,12 +91,14 @@ main :: IO ()
 main = do
         putStrLn "Please enter the path to the input file:"
         inPath <- getLine
-        tokens <- readFileTokens inPath
+        contents <- readFile inPath 
+        let tokens = words contents
+        let sortedTokens = sortStrings tokens
         putStrLn "Please enter the path to the output file:"
         outPath <- getLine
         putStrLn "Writing to file..."
         -- calc
-        writeFile outPath $ concat [ token ++ ", " ++ show score ++ "\n" |  token <- tokens, let score = nameScore token (sortStrings tokens)]
+        writeFile outPath $ concat [ token ++ ", " ++ show score ++ "\n" |  token <- tokens, let score = nameScore token sortedTokens]
 
 
 
