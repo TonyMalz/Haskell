@@ -29,14 +29,15 @@ findCharStrings c xs = filter (\xs -> any (\s -> s == toLower c) (map toLower xs
 
 sortStrings :: [String] -> [String]
 sortStrings []     = []
-sortStrings (x:xs) = insertSorted x (sortStrings xs)
-    where insertSorted x []     = [x]
-          insertSorted x (y:ys) = if (map toLower x) < (map toLower y) then (x:y:ys) else y:(insertSorted x ys)
+sortStrings (x:xs) = sort x (sortStrings xs)
+    where sort x [] = [x]
+          sort x sorted@(y:ys) | (map toLower x) < (map toLower y) = x : sorted
+                               | otherwise = y : sort x ys
 
 
 -- Simple implementation of insertion sort O(n^2)
 -- take first element (x) of UNSORTED (xs) and insert it at the right position in already SORTED (sortStrings xs)
--- insertSorted recursively shoves the biggest element to the right or rather at the end of the list
+-- sort recursively shoves the biggest element to the right or rather at the end of the list
 
 
 --
@@ -87,7 +88,15 @@ writeFileTokens xs path = writeFile path (conc xs)
           conc _  = []
 
 main :: IO ()
-main = return ()   -- DUMMY: replace by implementation
+main = do
+        putStrLn "Please enter the path to the input file:"
+        inPath <- getLine
+        tokens <- readFileTokens inPath
+        putStrLn "Please enter the path to the output file:"
+        outPath <- getLine
+        putStrLn "Writing to file..."
+        -- calc
+        writeFile outPath $ concat [ token ++ ", " ++ show score ++ "\n" |  token <- tokens, let score = nameScore token (sortStrings tokens)]
 
 
 
