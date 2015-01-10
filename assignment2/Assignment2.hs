@@ -47,9 +47,13 @@ addNode _ _ = Empty 0  -- dummy... TODO: replace by implementation
 
 
 
-
+-- pre-order traversal
 traverse :: KTree a -> [a]
-traverse _ = []        -- dummy... TODO: replace by implementation
+traverse (Empty _) = []
+traverse (KTree _ x []) = [x]
+traverse (KTree _ p (x:xs)) = (p : (traverse x)) ++ (traverseRec xs)
+    where traverseRec [] = [] 
+          traverseRec (x:xs) = traverse x ++ traverseRec xs
 
 
 
