@@ -18,18 +18,19 @@ import Data.Char
 --
 
 data KTree a = KTree Int a [KTree a] | Empty Int
-     deriving (Ord, Eq) 
-          -- TODO: remove "Show" and replace by instance of Show:
+     deriving (Ord, Eq)
+
 instance Show a => Show (KTree a) where    
-    show n = printt 0 n               -- TODO: implement
+    show n = printt 0 n               
 
 printt :: (Show a) => Int -> KTree a -> String
 printt n (Empty _) = ""
 printt n (KTree _ a []) =  addSpaces n ++ "+ " ++ show a ++ "\n" 
 printt n (KTree _ a (x:xs)) = addSpaces n ++ "+ " ++ show a  ++ "\n" ++ printt (n+1) x ++ (printtRec (n+1) xs)
-    where printtRec n [] = [] 
+    where printtRec n [] = "" 
           printtRec n (x:xs) = printt n x ++ printtRec n xs
-addSpaces n = unwords $ take n $ repeat " "
+addSpaces n = concat $ take n $ repeat "  "
+
 
 countNodes :: KTree a -> Int
 countNodes (Empty _) = 0
@@ -47,10 +48,16 @@ treeHeight (KTree _ _ nodes) = 1 + (maximum $ map treeHeight nodes)
 --
 
 addNode :: a -> KTree a -> KTree a
-addNode _ _ = Empty 0  -- dummy... TODO: replace by implementation
+addNode a tree@(KTree n b []) = insertNode a tree
+addNode a tree@(Empty n) = insertNode a tree
+addNode a tree@(KTree n b nodes)
+    | n > length nodes = insertNode a tree
+    | n == length nodes = if (treeHeight $ addNode a (head nodes)) <= (treeHeight $ head $ tail nodes) + 1
+                          then KTree n b (addNode a (head nodes) : (tail nodes))
+                          else KTree n b ((head nodes) : [addNode a ( head $ tail nodes)])
 
-
-
+insertNode a (KTree n b nodes) = KTree n b (nodes ++ [KTree n a []])
+insertNode a (Empty n ) = KTree n a []
 
 
 
