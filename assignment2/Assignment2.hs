@@ -18,11 +18,18 @@ import Data.Char
 --
 
 data KTree a = KTree Int a [KTree a] | Empty Int
-     deriving (Ord, Eq, Show)      -- TODO: remove "Show" and replace by instance of Show:
--- instance Show a => Show (KTree a) where    
---  show _ = ""                    -- TODO: implement
+     deriving (Ord, Eq) 
+          -- TODO: remove "Show" and replace by instance of Show:
+instance Show a => Show (KTree a) where    
+    show n = printt 0 n               -- TODO: implement
 
-
+printt :: (Show a) => Int -> KTree a -> String
+printt n (Empty _) = ""
+printt n (KTree _ a []) =  addSpaces n ++ "+ " ++ show a ++ "\n" 
+printt n (KTree _ a (x:xs)) = addSpaces n ++ "+ " ++ show a  ++ "\n" ++ printt (n+1) x ++ (printtRec (n+1) xs)
+    where printtRec n [] = [] 
+          printtRec n (x:xs) = printt n x ++ printtRec n xs
+addSpaces n = unwords $ take n $ repeat " "
 
 countNodes :: KTree a -> Int
 countNodes (Empty _) = 0
@@ -54,8 +61,6 @@ traverse (KTree _ x []) = [x]
 traverse (KTree _ p (x:xs)) = (p : (traverse x)) ++ (traverseRec xs)
     where traverseRec [] = [] 
           traverseRec (x:xs) = traverse x ++ traverseRec xs
-
-
 
 
 
