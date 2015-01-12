@@ -107,7 +107,7 @@ rotorExample3 = "TZASJHWXLKUYPMARLQNF"
 
 
 enigmaTest1 :: Enigma
-enigmaTest1 = [("ABC",0),("RSM",0),("ZBX",0)]
+enigmaTest1 = [("ABC",0),("RSM",0),("ZBX",2)]
 
 enigmaTest2 :: Enigma
 enigmaTest2 = [(rotorExample1,0),(rotorExample2,0),(rotorExample3,0)]
@@ -117,8 +117,11 @@ enigmaTest2 = [(rotorExample1,0),(rotorExample2,0),(rotorExample3,0)]
 --
 
 shiftChar :: Char -> Char -> Char
-shiftChar _ _ = 'A'   -- dummy... TODO: replace by implementation
-
+shiftChar char offset = if ordChar < 65 || ordChar > 90 || ordOff < 65 || ordOff > 90
+                        then toUpper char
+                        else chr ((mod (ordOff + ordChar - 128) 26) + 64)
+                        where ordChar = ord $ toUpper char
+                              ordOff = ord $ toUpper offset
 
 
 
@@ -127,17 +130,19 @@ shiftChar _ _ = 'A'   -- dummy... TODO: replace by implementation
 --
 
 
+--rotateStep :: Enigma -> Enigma
 rotateStep :: Enigma -> Enigma
-rotateStep _ = []     -- dummy... TODO: replace by implementation
-
- 
+rotateStep [] = []
+rotateStep xs = if newPos == 0 then (rotateStep $ init xs) ++ [(fst $ last xs, newPos)]
+                else init xs ++  [(fst $ last xs, newPos)]
+                where newPos = mod (1 + (snd $ last xs)) (length $ fst $ last xs)
 --
 -- 2.3
 --
 
 
 encryptChar :: Char -> State Enigma Char
-encryptChar _ = error "Not implemented"  -- dummy... TODO: replace by implementation
+encryptChar char = return $ toUpper char
 
 
 --
