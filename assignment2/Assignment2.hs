@@ -151,9 +151,10 @@ encryptChar char = State (\s -> (rotateStep s, shiftRec char s))
 --
 
 encryptMessage :: String -> State Enigma String
-encryptMessage _ = error "Not implemented" -- dummy... TODO: replace by implementation
-
-
+encryptMessage s = encryptMessageRec s ""
+    where encryptMessageRec [] enc = State (\s -> (s, enc))
+          encryptMessageRec (x:xs) enc = do y <- encryptChar x
+                                            encryptMessageRec xs (enc ++ [y])
 --
 -- 2.5
 --
