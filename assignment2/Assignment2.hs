@@ -107,7 +107,7 @@ rotorExample3 = "TZASJHWXLKUYPMARLQNF"
 
 
 enigmaTest1 :: Enigma
-enigmaTest1 = [("ABC",0),("RSM",0),("ZBX",2)]
+enigmaTest1 = [("ABC",0),("RSM",0),("ZBX",0)]
 
 enigmaTest2 :: Enigma
 enigmaTest2 = [(rotorExample1,0),(rotorExample2,0),(rotorExample3,0)]
@@ -119,7 +119,7 @@ enigmaTest2 = [(rotorExample1,0),(rotorExample2,0),(rotorExample3,0)]
 shiftChar :: Char -> Char -> Char
 shiftChar char offset = if ordChar < 65 || ordChar > 90 || ordOff < 65 || ordOff > 90
                         then toUpper char
-                        else chr ((mod (ordOff + ordChar - 128) 26) + 64)
+                        else chr ((mod (ordOff + ordChar - 129) 26) + 65)
                         where ordChar = ord $ toUpper char
                               ordOff = ord $ toUpper offset
 
@@ -141,10 +141,11 @@ rotateStep xs = if newPos == 0 then (rotateStep $ init xs) ++ [(fst $ last xs, n
 --
 
 
+
 encryptChar :: Char -> State Enigma Char
-encryptChar char = return $ toUpper char
-
-
+encryptChar char = State (\s -> (rotateStep s, shiftRec char s))
+    where shiftRec c [] = c
+          shiftRec c (x:xs) = shiftRec (shiftChar c (fst x !! snd x )) xs
 --
 -- 2.4
 --
