@@ -166,7 +166,7 @@ mystMsg = "MKWJGKQDRUTZCNFNKMPLQVIQGHIYDXVKORGZGTEPTGJNQYPKTVJTQCGUFHIAFZMAQM"
 -- decryption
 rotateBackStep :: Enigma -> Enigma
 rotateBackStep [] = []
-rotateBackStep xs = if newPos == 2 then (rotateBackStep $ init xs) ++ [(fst $ last xs, newPos)]
+rotateBackStep xs = if newPos == (length $ fst $ last xs) - 1 then (rotateBackStep $ init xs) ++ [(fst $ last xs, newPos)]
                 else init xs ++  [(fst $ last xs, newPos)]
                 where newPos = mod (-1 + (snd $ last xs)) (length $ fst $ last xs)
 
@@ -187,4 +187,11 @@ decryptMessage s = decryptMessageRec (reverse s) ""
     where decryptMessageRec [] enc = State (\s -> (s, enc))
           decryptMessageRec (x:xs) enc = do y <- decryptChar x
                                             decryptMessageRec xs ([y] ++ enc)
+
+-- brute force 
+brutedecode = [ decryptTest x y z | x <- [0..19], y <-[0..19], z<-[0..19], take 3 (decryptTest x y z) == "NOM" ]
+-- NO MILK TODAY MY LOVE HAS GONE AWAY THE BOTTLE STANDS FORLORN A SYMBOL OF THE DAWN
+-- (the only sensible decodable string out of 11 possibilities starting with NOM)
+
+decryptTest rot1 rot2 rot3 = snd $ runState [(rotorExample1,rot1),(rotorExample2,rot2),(rotorExample3,rot3)] $ decryptMessage mystMsg
 
