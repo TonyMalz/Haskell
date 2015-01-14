@@ -163,6 +163,28 @@ mystMsg :: String
 mystMsg = "MKWJGKQDRUTZCNFNKMPLQVIQGHIYDXVKORGZGTEPTGJNQYPKTVJTQCGUFHIAFZMAQM"
 
 
+-- decryption
+rotateBackStep :: Enigma -> Enigma
+rotateBackStep [] = []
+rotateBackStep xs = if newPos == 2 then (rotateBackStep $ init xs) ++ [(fst $ last xs, newPos)]
+                else init xs ++  [(fst $ last xs, newPos)]
+                where newPos = mod (-1 + (snd $ last xs)) (length $ fst $ last xs)
 
+shiftBackChar :: Char -> Char -> Char
+shiftBackChar char offset = if ordChar < 65 || ordChar > 90 || ordOff < 65 || ordOff > 90
+                        then toUpper char
+                        else chr ((mod ((ordChar - 65) - (ordOff - 64)) 26) + 65)
+                        where ordChar = ord $ toUpper char
+                              ordOff = ord $ toUpper offset
 
+decryptChar :: Char -> State Enigma Char
+decryptChar char = State (\s -> ( rotateBackStep s, shiftRec char (rotateBackStep s)))
+    where shiftRec c [] = c
+          shiftRec c (x:xs) = shiftRec (shiftBackChar c (fst x !! snd x )) xs
+
+decryptMessage :: String -> State Enigma String
+decryptMessage s = decryptMessageRec (reverse s) ""
+    where decryptMessageRec [] enc = State (\s -> (s, enc))
+          decryptMessageRec (x:xs) enc = do y <- decryptChar x
+                                            decryptMessageRec xs ([y] ++ enc)
 
