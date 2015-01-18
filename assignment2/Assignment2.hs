@@ -21,14 +21,20 @@ data KTree a = KTree Int a [KTree a] | Empty Int
      deriving (Ord, Eq)
 
 instance Show a => Show (KTree a) where    
-    show n = printt 0 n               
+    show tree = printt 0 tree               
 
+-- print a tree recursively
+-- begin at root element
+-- n -> starting number of indentations (increased by 1 every level)
 printt :: (Show a) => Int -> KTree a -> String
 printt n (Empty _) = ""
 printt n (KTree _ a []) =  addSpaces n ++ "+ " ++ show a ++ "\n" 
 printt n (KTree _ a (x:xs)) = addSpaces n ++ "+ " ++ show a  ++ "\n" ++ printt (n+1) x ++ (printtRec (n+1) xs)
     where printtRec n [] = "" 
           printtRec n (x:xs) = printt n x ++ printtRec n xs
+
+-- generate n times padding-spaces for indentation
+addSpaces :: Int -> String
 addSpaces n = concat $ take n $ repeat "  "
 
 
@@ -50,15 +56,21 @@ treeHeight (KTree _ _ nodes) = 1 + (maximum $ map treeHeight nodes)
 addNode :: a -> KTree a -> KTree a
 addNode a tree@(KTree n b []) = insertNode a tree
 addNode a tree@(Empty n) = insertNode a tree
-addNode a tree@(KTree n b nodes)
+addNode a tree@(KTree n b nodes@(x:xs))
     | n > length nodes = insertNode a tree
-    | n == length nodes = if (treeHeight $ addNode a (head nodes)) <= (treeHeight $ head $ tail nodes) + 1
-                          then KTree n b (addNode a (head nodes) : (tail nodes))
-                          else KTree n b ((head nodes) : [addNode a ( head $ tail nodes)])
+    | n == length nodes = if (treeHeight $ addNode a x) <= (maxHeight xs) + 1 
+                          -- check if adding a node to the left-most sub-node would increase the sub-tree heigth by more than 1
+                          then KTree n b (addNode a x : xs)
+                          else KTree n b (x : [addNode a (head xs)] ++ (tail xs))
+                          where maxHeight [] = 0
+                                maxHeight (x:xs) = maximum $ [treeHeight x] ++ [maxHeight xs]
 
+-- auxilary function to add a given Node to a given KTree
+insertNode:: a -> KTree a -> KTree a
 insertNode a (KTree n b nodes) = KTree n b (nodes ++ [KTree n a []])
 insertNode a (Empty n ) = KTree n a []
 
+--test = addNode 7 $ addNode 6 $ addNode 5 $ addNode 4 $ addNode 3 $ addNode 2 $ addNode 1 $ addNode 20 (KTree 2 5 [])
 
 
 -- pre-order traversal
@@ -130,7 +142,6 @@ shiftChar char offset = if ordChar < 65 || ordChar > 90 || ordOff < 65 || ordOff
 --
 
 
---rotateStep :: Enigma -> Enigma
 rotateStep :: Enigma -> Enigma
 rotateStep [] = []
 rotateStep xs = if newPos == 0 then (rotateStep $ init xs) ++ [(fst $ last xs, newPos)]
@@ -163,7 +174,8 @@ mystMsg :: String
 mystMsg = "MKWJGKQDRUTZCNFNKMPLQVIQGHIYDXVKORGZGTEPTGJNQYPKTVJTQCGUFHIAFZMAQM"
 
 
--- decryption
+-- Decryption
+-- -> reverse all encryption functions
 rotateBackStep :: Enigma -> Enigma
 rotateBackStep [] = []
 rotateBackStep xs = if newPos == (length $ fst $ last xs) - 1 then (rotateBackStep $ init xs) ++ [(fst $ last xs, newPos)]
@@ -188,10 +200,29 @@ decryptMessage s = decryptMessageRec (reverse s) ""
           decryptMessageRec (x:xs) enc = do y <- decryptChar x
                                             decryptMessageRec xs ([y] ++ enc)
 
--- brute force 
-brutedecode = [ decryptTest x y z | x <- [0..19], y <-[0..19], z<-[0..19], take 3 (decryptTest x y z) == "NOM" ]
--- NO MILK TODAY MY LOVE HAS GONE AWAY THE BOTTLE STANDS FORLORN A SYMBOL OF THE DAWN
--- (the only sensible decodable string out of 11 possibilities starting with NOM)
+-- brute force:
+-- 1. decrypt given message with every possible rotor position (20*20*20) and compare the first three characters
+--    of the decoded string to start with NOM
+-- 2. look at all possible results and determine which one is 'readable' or makes sense 
+brutedecode = [ (decryptTest x y z, (x,y,z) )| x <- [0..19], y <-[0..19], z<-[0..19], take 3 (decryptTest x y z) == "NOM" ]
 
+-- the only sensible decodable string out of 11 possibilities starting with NOM:
+-- ("NOMILKTODAYMYLOVEHASGONEAWAYTHEBOTTLESTANDSFORLORNASYMBOLOFTHEDAWN",(17,5,18))
+-- NO MILK TODAY MY LOVE HAS GONE AWAY THE BOTTLE STANDS FORLORN A SYMBOL OF THE DAWN (Herman's Hermits)
+-- rotor 1: 17, rotor 2: 5, rotor 3: 18
+-- shift rotors back by length of encoded string to get initial positions
+-- rotateBack (length mystMsg ) 17 5 18
+-- (17,2,12) -> Initial rotor positions:  rotor1: 17, rotor2: 2, rotor3: 12
+
+-- get decrypted message by rotor position
+decryptTest :: Int -> Int -> Int -> String
 decryptTest rot1 rot2 rot3 = snd $ runState [(rotorExample1,rot1),(rotorExample2,rot2),(rotorExample3,rot3)] $ decryptMessage mystMsg
 
+-- encrypt message by rotor position
+encryptTest :: String -> Int -> Int -> Int -> String
+encryptTest msg rot1 rot2 rot3 = snd $ runState [(rotorExample1,rot1),(rotorExample2,rot2),(rotorExample3,rot3)] $ encryptMessage msg
+
+-- shift back rotors by n positions
+rotateBack n rot1 rot2 rot3 = rotateBackRec n [(rotorExample1,rot1),(rotorExample2,rot2),(rotorExample3,rot3)]
+    where rotateBackRec 0 ([(_,r1),(_,r2),(_,r3)]) = (r1,r2,r3)
+          rotateBackRec n enigma = rotateBackRec (n-1) $ rotateBackStep enigma
